@@ -28,7 +28,7 @@ def test():
         print("Erreur : la séqence optenue n'est pas celle qui était attendue")
 
 
-def check_imput(text,mini,maxi):
+def check_input(text,mini,maxi):
     elem = int(input(text))
     while not(mini < elem < maxi):
         print(f"Erreur : vous devez entrer une valeur entre {mini+1} et {maxi-1}")
@@ -40,10 +40,10 @@ if __name__ == "__main__":
     print("==== Phase de teste avant démarage ====")
     test()
     print("\n==== Entré pour l'utilisateur ====")
-    m = check_imput("Entrez m : ",0,10000)
-    a = check_imput("Entrez a : ",0,m)
-    c = check_imput("Entrez c : ",-1,m)
-    Xo = check_imput("Entrez X0 : ",-1,m)
+    m = check_input("Entrez m : ",0,10000)
+    a = check_input("Entrez a : ",0,m)
+    c = check_input("Entrez c : ",-1,m)
+    Xo = check_input("Entrez X0 : ",-1,m)
     length = int(input("Entrez la longueur de la séquence que vous voulez générer : "))
     res = linear_congruential_generator(m,a,c,Xo,length)
     print(f"Séquence générée : {res}")
