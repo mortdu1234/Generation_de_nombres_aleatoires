@@ -1,84 +1,81 @@
 ##############################################################
 # coef de MT19937
 ##############################################################
-w: int = 32   # nombre de bit des entier générés
-n: int = 624  # nombre d'entier générer
-m: int = 397  # décalage pour le twist
+class MersenneTwister:
+    def __init__(self, seed: int):        
+        self.w: int = 32   # nombre de bit des entier générés
+        self.n: int = 624  # nombre d'entier générer
+        self.m: int = 397  # décalage pour le twist
 
-a = 0x9908B0DF  # coefficient matriciel
+        self.a = 0x9908B0DF  # coefficient matriciel
 
-u = 11        
-d = 0xFFFFFFFF
+        self.u = 11        
+        self.d = 0xFFFFFFFF
 
-s = 7
-b = 0x9D2C5680
+        self.s = 7
+        self.b = 0x9D2C5680
 
-t = 15
-c = 0xEFC60000
+        self.t = 15
+        self.c = 0xEFC60000
 
-l = 18
+        self.l = 18
 
-f = 1812433253  
-
-
-MT = [0] * n
-INDEX = 624
-
-def init(seed: int):
-    global MT, INDEX
-    INDEX = n  
-    MT[0] = seed & 0xFFFFFFFF
-    
-    for i in range(1, n):
-        MT[i] = (f * (MT[i-1] ^ (MT[i-1] >> (w-2))) + i) & 0xFFFFFFFF
+        self.f = 1812433253  
 
 
-def twist():
-    global MT, INDEX
-    newMT = [0] * n
-    for i in range(n):
-        mti = MT[i]
-        mti1 = MT[(i+1) % n]
-        mtim = MT[(i+m) % n]
+        self.MT = [0] * self.n
+        self.INDEX = self.n  
+        self.MT[0] = seed & 0xFFFFFFFF
         
-        Y = (mti & 0x80000000) | (mti1 & 0x7FFFFFFF)
+        for i in range(1, self.n):
+            self.MT[i] = (self.f * (self.MT[i-1] ^ (self.MT[i-1] >> (self.w-2))) + i) & 0xFFFFFFFF
+
+    def twist(self):
+        newMT = [0] * self.n
+        for i in range(self.n):
+            mti = self.MT[i]
+            mti1 = self.MT[(i+1) % self.n]
+            mtim = self.MT[(i+self.m) % self.n]
+            
+            Y = (mti & 0x80000000) | (mti1 & 0x7FFFFFFF)
+            
+            Ydecal = Y >> 1
+            if Y & 1: 
+                Ydecal = Ydecal ^ self.a
+            
+            newMT[i] = mtim ^ Ydecal
         
-        Ydecal = Y >> 1
-        if Y & 1: 
-            Ydecal = Ydecal ^ a
+        self.MT = newMT
+        self.INDEX = 0
+
+    def temper(self):      
+        if self.INDEX >= self.n:
+            self.twist()
         
-        newMT[i] = mtim ^ Ydecal
+        y = self.MT[self.INDEX]
+        
+        y = y ^ ((y >> self.u) & self.d)
+        y = y ^ ((y << self.s) & self.b)
+        y = y ^ ((y << self.t) & self.c)
+        y = y ^ (y >> self.l)
+        
+        self.INDEX += 1
+        return y & 0xFFFFFFFF
+
+    def next_number(self) -> float:
+        return self.temper()
+
     
-    MT = newMT
-    INDEX = 0
 
-def temper():
-    global INDEX
-    
-    if INDEX >= n:
-        twist()
-    
-    y = MT[INDEX]
-    
-    y = y ^ ((y >> u) & d)
-    y = y ^ ((y << s) & b)
-    y = y ^ ((y << t) & c)
-    y = y ^ (y >> l)
-    
-    INDEX += 1
-    return y & 0xFFFFFFFF
-
-
-
-
-reponse_seed_123 = [2991312382, 3062119789, 1228959102, 1840268610,
-                    974319580, 2967327842, 2367878886, 3088727057,
-                    3090095699, 2109339754, 1817228411, 3350193721,
-                    4212350166, 1764906721, 2941321312, 2489768049,
-                    2065586814, 601083951, 1684131913, 1722357280]
-
-init(123)
-print(f"i  : valeurCaculée   | valeurThéorique => egalité")
-for i in range(10):
-    test = temper()
-    print(f"{i:2} : {test:15} | {reponse_seed_123[i]:15} => {test==reponse_seed_123[i]}")
+if __name__ == "__main__":
+    mersenne = MersenneTwister(123)
+    reponse_seed_123 = [2991312382, 3062119789, 1228959102, 1840268610,
+                        974319580, 2967327842, 2367878886, 3088727057,
+                        3090095699, 2109339754, 1817228411, 3350193721,
+                        4212350166, 1764906721, 2941321312, 2489768049,
+                        2065586814, 601083951, 1684131913, 1722357280]
+    print("tests pour seed")
+    print(f" i :   valeurCaculée | valeurThéorique => egalité")
+    for i in range(10):
+        test = mersenne.next_number()
+        print(f"{i:2} : {test:15} | {reponse_seed_123[i]:15} => {test==reponse_seed_123[i]}")
