@@ -1,8 +1,10 @@
-##############################################################
-# coef de MT19937
-##############################################################
 class MersenneTwister:
-    def __init__(self, seed: int):        
+    def __init__(self, seed: int): 
+        """Initialiation de MersenneTwister avec la norme MT19937 pour 32 bits
+
+        Args:
+            seed (int): seed d'initialisation
+        """
         self.w: int = 32   # nombre de bit des entier générés
         self.n: int = 624  # nombre d'entier générer
         self.m: int = 397  # décalage pour le twist
@@ -31,6 +33,8 @@ class MersenneTwister:
             self.MT[i] = (self.f * (self.MT[i-1] ^ (self.MT[i-1] >> (self.w-2))) + i) & 0xFFFFFFFF
 
     def twist(self):
+        """effectue un twist pour regénérer une nouvelle matrice
+        """
         newMT = [0] * self.n
         for i in range(self.n):
             mti = self.MT[i]
@@ -49,6 +53,11 @@ class MersenneTwister:
         self.INDEX = 0
 
     def temper(self):      
+        """effectue la génération d'un nombre aléatoire a partir de la matrice
+
+        Returns:
+            float: nombre aléatoire généré
+        """
         if self.INDEX >= self.n:
             self.twist()
         
@@ -63,6 +72,11 @@ class MersenneTwister:
         return y & 0xFFFFFFFF
 
     def next_number(self) -> float:
+        """(alias) renvois un nombre aléatoire généré par MersenneTwister
+
+        Returns:
+            float: nombre aléatoire généré
+        """
         return self.temper()
 
     
