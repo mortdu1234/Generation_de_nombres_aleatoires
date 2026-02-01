@@ -56,7 +56,7 @@ class MersenneTwister:
         """effectue la génération d'un nombre aléatoire a partir de la matrice
 
         Returns:
-            float: nombre aléatoire généré
+            int: nombre aléatoire généré
         """
         if self.INDEX >= self.n:
             self.twist()
@@ -71,11 +71,11 @@ class MersenneTwister:
         self.INDEX += 1
         return y & 0xFFFFFFFF
 
-    def next_number(self) -> float:
+    def next_number(self) -> int:
         """(alias) renvois un nombre aléatoire généré par MersenneTwister
 
         Returns:
-            float: nombre aléatoire généré
+            int: nombre aléatoire généré
         """
         return self.temper()
 
