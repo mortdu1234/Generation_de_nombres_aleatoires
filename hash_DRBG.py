@@ -32,11 +32,16 @@ def generer_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen):
     
     const_int =  int.from_bytes(const, byteorder='big')
     
+    """
+        b'\x03' + etat : Concatène l’octet constant 0x03 devant etat
+        Dans Hash_DRBG, le même état est utilisé pour produire plusieurs valeurs (w, H, etc.)
+        Ajouter 0x03 devant etat garantit que ce hash est différent du hash pour w, même si etat est identique
+    """
     H = sha256(b'\x03' + etat).digest()
     H_int = int.from_bytes(H, byteorder='big')
     
     etat_int = int.from_bytes(etat, byteorder='big')
-    etat_int = (etat_int + H_int + const_int + reseed_cpt) % (2**seedlen)
+    etat_int = (etat_int + H_int + const_int + reseed_cpt) % (2**(8*seedlen))
     
     etat = etat_int.to_bytes(seedlen, byteorder='big')
     
