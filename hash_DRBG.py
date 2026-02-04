@@ -1,5 +1,5 @@
 from hashlib import sha256
-from os import urandom
+from system_generator import random
 
 def hashgen(seedlen, etat):
     """
@@ -19,7 +19,7 @@ def hashgen(seedlen, etat):
 
 def seed(seedlen):
     """Génère un nouveau seed aléatoire de longueur seedlen octets"""
-    return urandom(seedlen)
+    return random(seedlen)
         
         
 def generer_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen):    
