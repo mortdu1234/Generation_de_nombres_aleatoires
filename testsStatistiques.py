@@ -2,6 +2,7 @@ import math
 from BoxMuller import BoxMuller
 from LCG import linear_congruential_generator
 from Mersenne_twister import MersenneTwister
+from BBS import BBS
 from scipy.stats import chi2
 
 
@@ -338,15 +339,17 @@ if __name__ == "__main__":
     
     data = [mt.next_number() for _ in range(nb_data)]
     interpretations.append(["Mersenne Twister"] + effectuer_test(data))
-    print(Chi2(normaliser(data), len(data)))
 
     data = [BoxMuller() for _ in range(nb_data)]
     interpretations.append(["Box Muller"] + effectuer_test(data))
-    print(Chi2(normaliser(data), len(data)))
 
     data = linear_congruential_generator(9,2,1,3,nb_data)
     interpretations.append(["LCG"] + effectuer_test(data))
-    
+
+    data = BBS(nb_data)
+    interpretations.append(["BBS"] + effectuer_test(data))
+
+
 
     generer_tableau_tests(tests, interpretations)
 
