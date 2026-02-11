@@ -1,8 +1,6 @@
 from Mersenne_twister import MersenneTwister
 from math import sqrt
 
-
-
 ##################################
 #   Fonctions de vérifications  #
 ##################################
@@ -71,8 +69,7 @@ def generate_M_and_Xo(p,q):
     while True:
         Xo = ramdomizer.next_number()
         Xo **= 2
-        print(calcul_pgcd(M,Xo) == 1)
-        if(res == 1):
+        if(calcul_pgcd(M,Xo) == 1):
             return M,Xo
 
 
@@ -97,6 +94,7 @@ def BBS(length_of_sequence):
         Xn = (Xn**2)%M
         sequence.append(Xn)
     return sequence
+
 
 
 if __name__ == "__main__":
