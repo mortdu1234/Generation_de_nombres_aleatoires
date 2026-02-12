@@ -55,7 +55,7 @@ def conversion_octet(data: list[float]) -> dict[int, int]:
             raise ValueError(f"Donnée à l'index {i} hors de [0,1]: {value}")
         
         # Conversion en octet [0, 255]
-        octet = int(value * 255)
+        octet = min(int(value * 256), 255)
         nb_occurence_octet[octet] += 1
     
     return nb_occurence_octet
@@ -266,26 +266,23 @@ def autocorrelation(data: list[float], nb_data: int, lag: int):
         nb_data (int): nombre de donnée a tester
         lag (int): valeur du lag de décalage
     """
-    moy = sum(data)/nb_data
-
-    numerateur = 0
-    denominateur = 0
-    for i in range(nb_data-lag):
-        data_sub_moy = data[i]-moy
-        numerateur += (data_sub_moy) * (data[i+lag]-moy)
-        denominateur += data_sub_moy**2
-    for i in range(nb_data-lag, nb_data):
-        denominateur += (data[i]-moy)**2
+    moy = sum(data) / nb_data
     
-    rho = numerateur / denominateur
+    # Calcul de la variance totale (dénominateur)
+    variance = sum((x - moy)**2 for x in data)
     
-    interval_confiance = 1.96/math.sqrt(nb_data)
+    # Calcul de la covariance avec lag (numérateur)
+    covariance = sum((data[i] - moy) * (data[i+lag] - moy) 
+                     for i in range(nb_data - lag))
+    
+    rho = covariance / variance if variance != 0 else 0
+    
+    interval_confiance = 1.96 / math.sqrt(nb_data)
     
     return {
         "rho": rho,
-        "interpretation": "non corrélation" if abs(rho)<interval_confiance else "corrélation"
+        "interpretation": "non corrélation" if abs(rho) < interval_confiance else "corrélation"
     }
-
 
 # =================================================================
 # Test de Kolmogorov-Smirnov
