@@ -31,6 +31,8 @@ def normaliser(data : list):
         return [0.5] * len(data)
     
     return [(x - min_val) / (max_val - min_val) for x in data]
+
+
 def conversion_octet(data: list[float]) -> dict[int, int]:
     """Renvoie le nombre d'occurrences de chaque octet
     Args:
@@ -56,177 +58,17 @@ def conversion_octet(data: list[float]) -> dict[int, int]:
     return nb_occurence_octet
 
 
-##################################################
-# Entropie de Shannon
-##################################################
-def Shannon(data: list[float], nb_data: int):
-    """Effectue un test d'entropie de Shanon par octet
-
-    Args:
-        data (list[float]): liste des données normalisé a tester
-        nb_data (int): nombre de donnée a tester
-    """
-    # etape de conversion en octet
-    nb_occurence_octet = conversion_octet(data)
-
-    # calcul des probabilité d'apparitions
-    entropie = 0.0
-    for key in nb_occurence_octet:
-        # formule 1
-        proba: float = nb_occurence_octet[key] / nb_data
-        if proba > 0:
-            # formule 2
-            entropie -= proba * math.log2(proba)
-
-    # ajout d'un ratio par rapport a l'entropie max possible
-    # le ratio est le taux de dispertion des données
-    entropie_max = 8.0
-    ratio = entropie / entropie_max if entropie_max > 0 else 0
-
-    return {
-        "entropie": entropie,
-        "ratio": ratio,
-        "interpretation": _interpreter_entropie(ratio)
-    }
-
-def _interpreter_entropie(ratio):
-    """Interprète le ratio d'entropie"""
-    if ratio > 0.99:
-        return "Excellent - Distribution très uniforme"
-    elif ratio > 0.95:
-        return "Bon - Distribution acceptable"
-    elif ratio > 0.90:
-        return "Moyen - Quelques biais détectés"
-    else:
-        return "Faible - Distribution non uniforme"
-
-
-# =================================================================
-# Test du Chi-2 (χ²)
-# =================================================================
-
-def chi2_critique(ddl, alpha=0.05):
-    """
-    Renvoie la valeur critique du chi² pour un degré de liberté donné.
-    
-    Paramètres:
-    -----------
-    ddl : int
-        Degré de liberté (degrees of freedom)
-    alpha : float, optional
-        Seuil de significativité (par défaut 0.05 pour 5%)
-    
-    Retourne:
-    ---------
-    float
-        Valeur critique du chi²
-    
-    Exemple:
-    --------
-    >>> chi2_critique(1)
-    3.841458820694124
-    >>> chi2_critique(5)
-    11.070497693516351
-    """
-    return chi2.ppf(1 - alpha, ddl)
-
-
-
-def Chi2(data: list[float], nb_data: int):    
-    """effectue un test du Chi2 sur l'uniformité des octets
-
-    Args:
-        data (list[float]): liste des données normalisé a tester
-        nb_data (int): nombre de donnée a tester
-    """
-    
-    # etape de conversion en octet
-    nb_occurence_octet = conversion_octet(data)
-
-    frequence_theorique: float = nb_data / 256
-
-    # calcul du Chi2 pratique
-    chi2_calcule = 0.0
-    for key in nb_occurence_octet:
-        chi2_calcule += ( (nb_occurence_octet[key] - frequence_theorique)**2 / frequence_theorique )
-
-    # calcul du Chi2 théorique avec 255 degrés de liberté
-    ddl = 255
-    chi2_theorique = chi2_critique(ddl)
-
-    return {
-        "chi2c": chi2_calcule,
-        "chi2t": chi2_theorique,
-        "interpretation": "Suit bien une lois Uniforme" if chi2_calcule<chi2_theorique else "Ne suit pas une loi Uniforme"
-    }
-    
-# =================================================================
-# Autocorrélation
-# =================================================================
-def autocorrelation(data: list[float], nb_data: int, lag: int):
-    """vérifie si il y a une corrélation entre les données avec un décallage
-    de lag
-
-    Args:
-        data (list[float]): liste des données normalisé a tester
-        nb_data (int): nombre de donnée a tester
-        lag (int): valeur du lag de décalage
-    """
-    moy = sum(data)/nb_data
-
-    numerateur = 0
-    denominateur = 0
-    for i in range(nb_data-lag):
-        data_sub_moy = data[i]-moy
-        numerateur += (data_sub_moy) * (data[i+lag]-moy)
-        denominateur += data_sub_moy**2
-    for i in range(nb_data-lag, nb_data):
-        denominateur += (data[i]-moy)**2
-    
-    rho = numerateur / denominateur
-    
-    interval_confiance = 1.96/math.sqrt(nb_data)
-    
-    return {
-        "rho": rho,
-        "interpretation": "non corrélation" if abs(rho)<interval_confiance else "corrélation"
-    }
-
-
-# =================================================================
-# Test de Kolmogorov-Smirnov
-# =================================================================
-def kolmogorov_smirnov(data: list[float], nb_data: int):
-    """permet de tester si les données sont uniformes ou non
-
-    Args:
-        data (list[float]): liste des données normalisé a tester
-        nb_data (int): nombre de donnée a tester
-    """
-    # tri des données
-    data = sorted(data)
-    max_distance = 0
-    max_index = 0
-
-    for i in range(nb_data):
-        x_i = data[i]
-        f_empirique = (i + 1) / nb_data
-        f_theorique = x_i
-
-        distance = abs(f_empirique - f_theorique)
-        if distance > max_distance:
-            max_index = i
-            max_distance = distance
-        
-    # formule approximative
-    d_critique_005 = 1.36 / math.sqrt(nb_data)
-    return {
-        "d_crit" : d_critique_005,
-        "d_max": max_distance,
-        "interpretation": "Les données sont bien de distribution uniforme" if max_distance < d_critique_005 else "les données ne sont pas de distribution uniforme"
-    }
-
 def effectuer_test(data_brut: list, precision: int=3, affichage: bool=False) -> list[str]:
+    """effectue les différents tests a partir de donnée brut
+
+    Args:
+        data_brut (list): ensemble de données brut générée
+        precision (int, optional): nombre de chiffre de précision dans l'affichage des résultats. Defaults to 3.
+        affichage (bool, optional): effectue un affichage terminal des résultats. Defaults to False.
+
+    Returns:
+        list[str]: liste des interprétations des différents tests
+    """
     data = normaliser(data_brut)
     n = len(data)
 
@@ -316,6 +158,164 @@ def generer_tableau_tests(tests, resultats, fichier='resultat.txt'):
             f.write(values + "\n")
     
     print(f"Tableau généré dans le fichier '{fichier}'")
+
+##################################################
+# Entropie de Shannon
+##################################################
+def Shannon(data: list[float], nb_data: int):
+    """Effectue un test d'entropie de Shanon par octet
+
+    Args:
+        data (list[float]): liste des données normalisé a tester
+        nb_data (int): nombre de donnée a tester
+    """
+    # etape de conversion en octet
+    nb_occurence_octet = conversion_octet(data)
+
+    # calcul des probabilité d'apparitions
+    entropie = 0.0
+    for key in nb_occurence_octet:
+        # formule 1
+        proba: float = nb_occurence_octet[key] / nb_data
+        if proba > 0:
+            # formule 2
+            entropie -= proba * math.log2(proba)
+
+    # ajout d'un ratio par rapport a l'entropie max possible
+    # le ratio est le taux de dispertion des données
+    entropie_max = 8.0
+    ratio = entropie / entropie_max if entropie_max > 0 else 0
+
+    return {
+        "entropie": entropie,
+        "ratio": ratio,
+        "interpretation": _interpreter_entropie(ratio)
+    }
+
+def _interpreter_entropie(ratio):
+    """Interprète le ratio d'entropie"""
+    if ratio > 0.99:
+        return "Excellent - Distribution très uniforme"
+    elif ratio > 0.95:
+        return "Bon - Distribution acceptable"
+    elif ratio > 0.90:
+        return "Moyen - Quelques biais détectés"
+    else:
+        return "Faible - Distribution non uniforme"
+
+
+# =================================================================
+# Test du Chi-2 (χ²)
+# =================================================================
+
+def chi2_critique(ddl, alpha=0.05):
+    """
+    Renvoie la valeur critique du chi² pour un degré de liberté donné.
+    
+    Paramètres:
+    -----------
+    ddl : int
+        Degré de liberté (degrees of freedom)
+    alpha : float, optional
+        Seuil de significativité (par défaut 0.05 pour 5%)
+    """
+    return chi2.ppf(1 - alpha, ddl)
+
+
+
+def Chi2(data: list[float], nb_data: int):    
+    """effectue un test du Chi2 sur l'uniformité des octets
+
+    Args:
+        data (list[float]): liste des données normalisé a tester
+        nb_data (int): nombre de donnée a tester
+    """
+    
+    # etape de conversion en octet
+    nb_occurence_octet = conversion_octet(data)
+
+    frequence_theorique: float = nb_data / 256
+
+    # calcul du Chi2 pratique
+    chi2_calcule = 0.0
+    for key in nb_occurence_octet:
+        chi2_calcule += ( (nb_occurence_octet[key] - frequence_theorique)**2 / frequence_theorique )
+
+    # calcul du Chi2 théorique avec 255 degrés de liberté
+    ddl = 255
+    chi2_theorique = chi2_critique(ddl)
+
+    return {
+        "chi2c": chi2_calcule,
+        "chi2t": chi2_theorique,
+        "interpretation": "Suit bien une lois Uniforme" if chi2_calcule<chi2_theorique else "Ne suit pas une loi Uniforme"
+    }
+    
+# =================================================================
+# Autocorrélation
+# =================================================================
+def autocorrelation(data: list[float], nb_data: int, lag: int):
+    """vérifie si il y a une corrélation entre les données avec un décallage
+    de lag
+
+    Args:
+        data (list[float]): liste des données normalisé a tester
+        nb_data (int): nombre de donnée a tester
+        lag (int): valeur du lag de décalage
+    """
+    moy = sum(data)/nb_data
+
+    numerateur = 0
+    denominateur = 0
+    for i in range(nb_data-lag):
+        data_sub_moy = data[i]-moy
+        numerateur += (data_sub_moy) * (data[i+lag]-moy)
+        denominateur += data_sub_moy**2
+    for i in range(nb_data-lag, nb_data):
+        denominateur += (data[i]-moy)**2
+    
+    rho = numerateur / denominateur
+    
+    interval_confiance = 1.96/math.sqrt(nb_data)
+    
+    return {
+        "rho": rho,
+        "interpretation": "non corrélation" if abs(rho)<interval_confiance else "corrélation"
+    }
+
+
+# =================================================================
+# Test de Kolmogorov-Smirnov
+# =================================================================
+def kolmogorov_smirnov(data: list[float], nb_data: int):
+    """permet de tester si les données sont uniformes ou non
+
+    Args:
+        data (list[float]): liste des données normalisé a tester
+        nb_data (int): nombre de donnée a tester
+    """
+    # tri des données
+    data = sorted(data)
+    max_distance = 0
+
+    for i in range(nb_data):
+        x_i = data[i]
+        f_empirique = (i + 1) / nb_data
+        f_theorique = x_i
+
+        distance = abs(f_empirique - f_theorique)
+        if distance > max_distance:
+            max_distance = distance
+        
+    # formule approximative
+    d_critique_005 = 1.36 / math.sqrt(nb_data)
+    
+    return {
+        "d_crit" : d_critique_005,
+        "d_max": max_distance,
+        "interpretation": "Les données sont bien de distribution uniforme" if max_distance < d_critique_005 else "les données ne sont pas de distribution uniforme"
+    }
+
 
 
 if __name__ == "__main__":
