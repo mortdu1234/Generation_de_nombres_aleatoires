@@ -4,6 +4,9 @@ from LCG import linear_congruential_generator
 from Mersenne_twister import MersenneTwister
 from BBS import BBS
 from scipy.stats import chi2
+from hash_DRBG import next_hash_DRBG
+from system_generator import random
+
 
 
 
@@ -348,7 +351,26 @@ if __name__ == "__main__":
 
     data = BBS(nb_data)
     interpretations.append(["BBS"] + effectuer_test(data))
-
+    
+    data = []
+    for _ in range(nb_data):
+        rand = random(32)
+        data.extend(rand)  # ajoute les 32 octets
+    interpretations.append(["Générateur système"] + effectuer_test(data))
+    
+    
+    """--------------<Hash DRBG>------------------"""
+    etat = random(32) #32 octets <=> 256 bits
+    const = random(32) #32 octets <=> 256 bits
+    reseed_interval = 6
+    seedlen = 32
+    reseed_cpt = 0
+    outputs = next_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen, nbIteration = nb_data)
+    data = []
+    for d in outputs:
+        data.extend(d)
+    interpretations.append(["Hash DRBG"] + effectuer_test(data))
+    """--------------</Hash DRBG>------------------"""
 
 
     generer_tableau_tests(tests, interpretations)
