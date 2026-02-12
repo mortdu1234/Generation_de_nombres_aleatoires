@@ -3,10 +3,16 @@ from system_generator import random
 
 def hashgen(seedlen, etat):
     """
-    seedlen : type int
-        nombre d'octets de la valeur à retourner
-    etat : type bytes
-        donnee initiale en tableau d'octets
+    Produit un tableau d'octets en hachant l'état de manière itérative.
+    Entrées :
+        seedlen (int) : Nombre d'octets total à générer.
+        etat (bytes)  : La valeur interne actuelle qui sert de base au hachage.
+        
+    Sortie :
+        (bytes) : Un tableau d'octets de longueur 'seedlen' destiné à l'utilisateur.
+        
+    Logique : On hache l'état, puis on l'incrémente de 1 à chaque tour pour que 
+    chaque nouveau bloc de 32 octets soit radicalement différent du précédent.
     """
     data = etat
     w = b'' #initialisation du bytes à retourner
@@ -18,11 +24,35 @@ def hashgen(seedlen, etat):
     return w[:seedlen]
 
 def seed(seedlen):
-    """Génère un nouveau seed aléatoire de longueur seedlen octets"""
+    """
+    Récupère une source de hasard frais auprès du système.
+    
+    Entrée :
+        seedlen (int) : Longueur de la graine souhaitée en octets.
+        
+    Sortie :
+        (bytes) : Une suite d'octets aléatoires (entropie système).
+        
+    """
     return random(seedlen)
         
         
-def generer_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen):    
+def generer_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen):   
+    """
+    Génère les bits aléatoires
+    
+    Entrées :
+        etat (bytes)            : L'état V actuel.
+        const (bytes)           : La constante C (graine de sécurité).
+        reseed_cpt (int)        : Compteur du nombre de générations effectuées.
+        reseed_interval (int)   : Limite avant de devoir rafraîchir le hasard.
+        seedlen (int)           : Taille de l'état en octets.
+        
+    Sorties :
+        bits_retournes (bytes) : Les données aléatoires produite.
+        etat (bytes)           : Le nouvel état V mis à jour pour la prochaine itération.
+        reseed_cpt (int)       : Le compteur
+    """ 
     if reseed_cpt > reseed_interval:
         etat = seed(seedlen)
         reseed_cpt = 1
