@@ -1,8 +1,19 @@
 from time import time_ns
 from hashlib import sha256
-def random(seedlen): #seedlen : type entier - nombre d'octets de l'aléatoire à générer
+def random(seedlen):
     """
-        Sources d'aléatoire : le temps et un objet aléatoire
+    Simule un générateur de nombres aléatoires système basé sur l'entropie locale.
+    
+    Entrée :
+        seedlen (int) : Nombre d'octets aléatoires à générer.
+        
+    Sortie :
+        (bytes) : Un tableau d'octets imprévisibles de longueur 'seedlen'.
+        
+    Logique : 
+        On utilise des sources de bruit liées au matériel : temps en nanosecondes 
+        et adresse mémoire d'un objet pour créer une graine initiale, puis on 
+        l'étend via SHA-256 pour atteindre la taille demandée.
     """
     t = time_ns() #prends l'horodotage actuel en nanosecondes
     obj_random = id(object()) #id unique d'un objet temporaire
