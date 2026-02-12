@@ -18,6 +18,7 @@ def check_param(mini,maxi,param):
     if not(mini < param < maxi):
         raise RuntimeError(f"La nombre de bits du nombre sortie doit être compri entre {mini+1} et {maxi-1}")
 
+
 def NRGB(bit_length):
         """
         Input:
@@ -27,7 +28,7 @@ def NRGB(bit_length):
                 int: un entier aléatoire.
 
         Sémantique:
-                Génère un nombre pseudo/aléatoire en combinant trois sources d'entropie.
+                Génère un nombre pseudo/aléatoire sur 32 bit en combinant trois sources d'entropie.
         """
         check_param(0,33,bit_length)
         entropy = os.urandom(4)

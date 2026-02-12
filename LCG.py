@@ -5,10 +5,12 @@ def linear_congruential_generator(m,a,c,Xo,length_of_sequence):
             a : 0 < a < m est le multiplicateur -> int
             c : 0 <= c < m est l’incrément -> int
             X0 : 0 <= X0 < m est la valeur de départ -> int
+            length_of_sequence : nombre de nombre à généré -> int
 
     output : X1,X2, ... , Xn+1: nombres aléatoires générés -> int[]
 
-    sémentique : Produit une séquence de nombres pseudo-aléatoires calculés à l'aide d'une équation linéaire discontinue par morceaux.
+    sémentique : Produit une séquence de nombres pseudo-aléatoires calculés à l'aide 
+                 d'une équation linéaire discontinue par morceaux.
     """
     sequence = []
     Xn = Xo
@@ -19,6 +21,11 @@ def linear_congruential_generator(m,a,c,Xo,length_of_sequence):
 
 # Test
 def test():
+    """
+    input : N/A
+    output : N/A
+    sémentique : Vérifie le fonctionnement du générateur à l'aide d'une assertion
+    """
     try:
         res = linear_congruential_generator(9,2,1,3,7)
         print(f"Séquence générée : {res}\nSéquence attendue : [7, 6, 4, 0, 1, 3, 7]")
