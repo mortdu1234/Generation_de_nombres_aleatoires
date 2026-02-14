@@ -60,6 +60,24 @@ def conversion_octet(data: list[float]) -> dict[int, int]:
     
     return nb_occurence_octet
 
+def octets_vers_float_uniforme(octets):
+    """Convertit des octets en float [0,1) avec haute précision
+    
+    Args:
+        octets: liste d'octets (au moins 4 recommandés)
+    
+    Returns:
+        float dans [0, 1)
+    """
+    # Utiliser 4 octets pour obtenir ~4 milliards de valeurs possibles
+    if len(octets) < 4:
+        raise ValueError("Au moins 4 octets nécessaires")
+    
+    # Combiner 4 octets en un entier 32 bits
+    valeur = (octets[0] << 24) | (octets[1] << 16) | (octets[2] << 8) | octets[3]
+    
+    # Normaliser sur [0, 1)
+    return valeur / (2**32)
 
 def effectuer_test(data_brut: list, precision: int=3, affichage: bool=False) -> list[str]:
     """effectue les différents tests a partir de donnée brut
@@ -352,7 +370,7 @@ if __name__ == "__main__":
     data = []
     for _ in range(nb_data):
         rand = random(32)
-        data.extend(rand)  # ajoute les 32 octets
+        data.extend([octets_vers_float_uniforme(rand)])
     interpretations.append(["Générateur système"] + effectuer_test(data))
     
     
@@ -364,8 +382,9 @@ if __name__ == "__main__":
     reseed_cpt = 0
     outputs = next_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen, nbIteration = nb_data)
     data = []
-    for d in outputs:
-        data.extend(d)
+    for output in outputs:
+        for i in range(0, 32, 4):
+            data.append(octets_vers_float_uniforme(output[i:i+4]))
     interpretations.append(["Hash DRBG"] + effectuer_test(data))
     """--------------</Hash DRBG>------------------"""
 
