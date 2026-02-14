@@ -80,7 +80,20 @@ def generer_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen):
     
     
     return bits_retournes, etat, reseed_cpt
-    
+
+
+def next_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen, nbIteration = 5):
+    outputs = []
+    for i in range(1, nbIteration+1):
+        bits_retournes, etat, reseed_cpt = generer_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen)
+        outputs.append(bits_retournes)
+        # print(f"Génération {i}:")
+        # print("  Sortie (hex) :", bits_retournes.hex())
+        # print("  Nouvel V     :", etat.hex())
+        # print("  Reseed compteur :", reseed_cpt)
+        # print("-------------------------------------------------")
+        
+    return outputs
     
 if __name__ == "__main__":
     # --- Paramètres ---
@@ -88,20 +101,17 @@ if __name__ == "__main__":
     reseed_interval = 5
     
     # --- Initialisation ---
-    V = seed(seedlen)          # état interne initial
-    C = seed(seedlen)          # constante interne
+    etat = seed(seedlen)          # état interne initial
+    const = seed(seedlen)          # constante interne
     reseed_cpt = 1
     
-    print("État initial V :", V.hex())
-    print("Constante C    :", C.hex())
+    print("État initial V :", etat.hex())
+    print("Constante C    :", const.hex())
     print("Reseed compteur :", reseed_cpt)
     print("-------------------------------------------------")
     
     # --- Génération de plusieurs sorties ---
-    for i in range(1, 6):
-        output, V, reseed_cpt = generer_hash_DRBG(V, C, reseed_cpt, reseed_interval, seedlen)
-        print(f"Génération {i}:")
-        print("  Sortie (hex) :", output.hex())
-        print("  Nouvel V     :", V.hex())
-        print("  Reseed compteur :", reseed_cpt)
-        print("-------------------------------------------------")
+    outputs = next_hash_DRBG(etat, const, reseed_cpt, reseed_interval, seedlen, nbIteration = 10)
+    print("Suite de 10 hash DRBG")
+    for data in outputs:
+        print(data.hex(),end=", ")
