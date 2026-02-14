@@ -245,7 +245,7 @@ python LCG_attack.py
 python Attaque_MT.py
 ```
 
-## 📁 Structure du projet
+## Structure du projet
 
 ```
 .
@@ -321,11 +321,6 @@ Test d’autocorrélation
 Test de Kolmogorov-Smirnov
 - https://www.jybaudot.fr/Inferentielle/kolmogorov.html (visité le 11/02/2026)
 
-Récupération de la graine LCG
-- TODO
-
-Reconstruction d’état MT19937
-- TODO
 
 ## Contribution
 
